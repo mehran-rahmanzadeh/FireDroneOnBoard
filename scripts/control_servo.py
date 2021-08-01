@@ -15,13 +15,14 @@ class ServoControl:
 
     def set_angle(self, angle):
         """get angle in degree & set servo angle"""
-        duty = angle / 18 + 2
+        duty = angle / 36 + 2
         GPIO.output(3, True)
-        pwm.ChangeDutyCycle(duty)
+        if angle == 45:
+            self.pwm.ChangeDutyCycle(10)
+            sleep(0.445)
+        self.pwm.ChangeDutyCycle(0)        
         self.position = angle
-        sleep(1)
         GPIO.output(3, False)
-        pwm.ChangeDutyCycle(0)
 
     def get_angle(self):
         """get angle of servo motor"""
@@ -29,8 +30,8 @@ class ServoControl:
 
     def drop_ball(self):
         """drop one ball"""
-        position = self.get_angle()
-        # TODO
+        self.set_angle(45)
+        return True
 
 
 
@@ -38,16 +39,8 @@ class ServoControl:
 if __name__ == '__main__':
     """for test"""
     controller = ServoControl()
-    controller.set_angle(0)
-    sleep(2)
-    controller.set_angle(45)
-    sleep(2)
-    controller.set_angle(90)
-    sleep(2)
-    controller.set_angle(135)
-    sleep(2)
-    controller.set_angle(180)
-    sleep(2)
+    controller.drop_ball()
+    print('Ball Dropped Successfully!')
 
     controller.pwm.stop()
     GPIO.cleanup()
