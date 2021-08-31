@@ -1,15 +1,20 @@
 from dronekit import connect
+from time import sleep
+import datetime
+from control_servo import ServoControl
 
 
 class RCControl:
     def __init__(self, *args, **kwargs):
         """init"""
         self.drone = None
-        # self.servo_controller = ServoControl()
+        self.servo_controller = ServoControl()
         self.is_connected = False
-        self.fc_port = 'localhost:14550' #'/dev/ttyACM0'
-        self.drop_ball_channel_num = 16
+        self.fc_port = '/dev/ttyACM0'
+        self.drop_ball_channel_num = 7
         self.drop_count = 0
+        self.min_channel_value = 1600
+        self.last_drop = 0
 
     def connect(self):
         """connect to drone"""
@@ -35,17 +40,23 @@ class RCControl:
         """start listening to rc channels for dropping ball"""
         if not self.is_connected:
             return
-
-        @self.drone.on_message('RC_CHANNELS')
-        def channel_listener(drone, name, message):
-            """if channel self.drop_ball_channel_num is pressed drop ball"""
-            if message == self.drop_ball_channel_num:
-                # self.servo_controller.drop_ball()
-                print('drop ball')
-                self.drop_count += 1
-                # TODO: check if it is the first drop turn 45, if second/third turn 90, forth turn 90 sleep 1 second
-                #  turn 45
-            self.drone.notify_attribute_listeners('channels', self.drone.channels)
+        while True:
+            sleep(0.5)
+            
+            @self.drone.on_message('RC_CHANNELS')
+            def channel_listener(drone, name, message):
+                """if channel self.drop_ball_channel_num is pressed drop ball"""
+#                 print(message.to_dict())
+                if getattr(message, f'chan{self.drop_ball_channel_num}_raw') > self.min_channel_value :
+                    # self.servo_controller.drop_ball()
+                    if datetime.datetime.now().timestamp() - self.last_drop > 5:
+                        print('drop ball')
+                        self.servo_controller.drop_ball()
+                        self.drop_count += 1
+                        self.last_drop = datetime.datetime.now().timestamp()
+                    # TODO: check if it is the first drop turn 45, if second/third turn 90, forth turn 90 sleep 1 second
+                    #  turn 45
+                self.drone.notify_attribute_listeners('channels', self.drone.channels)
 
 
 if __name__ == '__main__':
