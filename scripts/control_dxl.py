@@ -11,7 +11,7 @@ class DXLControl:
             2: 140,
             3: 235,
             4: 331
-        }
+        }  # values in degree
 
         self.ADDR_MX_TORQUE_ENABLE = 24               # Control table address is different in Dynamixel model
         self.ADDR_MX_GOAL_POSITION = 30
